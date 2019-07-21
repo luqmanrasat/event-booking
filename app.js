@@ -14,7 +14,7 @@ app.use('/graphql', graphqlHttp({
     }
 
     type RootMutation {
-
+      createEvent(name: String): String
     }
 
     schema {
@@ -22,7 +22,16 @@ app.use('/graphql', graphqlHttp({
       mutation: RootMutation
     }
   `),
-  rootValue: {}
+  rootValue: {
+    events() {
+      return ['Jogging', 'Gaming', 'Coding'];
+    },
+    createEvent(args) {
+      const eventName = args.name;
+      return eventName;
+    }
+  },
+  graphiql: true,
 }));
 
 app.listen(3000);
