@@ -2,56 +2,53 @@ const User = require('../models/User');
 const Event = require('../models/Event');
 const bcrypt = require('bcryptjs');
 
-function createUser({ userInput }) {
-  return User
-    .findOne({ email: userInput.email })
-    .then(user => {
-      if (user) { throw new Error('User exists already') }
-      return bcrypt
-        .hash(userInput.password, 12)
-    })
-    .then(hashedPassword => {
-      const user = new User({
-        email: userInput.email,
-        password: hashedPassword,
-      });
-      
-      return user.save();
-    })
-    .then(result => {
-      return { ...result._doc, password: null }
-    })
-    .catch(err => { throw err });  
+async function createUser({ userInput }, context) {
+  try {
+    const existingUser = await User.findOne({ email: userInput.email });
+    if (existingUser) { throw new Error('User exists already') }
+
+    const hashedPassword = await bcrypt.hash(userInput.password, 12);
+    const user = new User({
+      email: userInput.email,
+      password: hashedPassword,
+    });
+        
+    const result = await user.save();
+    return {
+      ...result._doc,
+      password: null,
+      createdEvents: context.createdEvents.bind(this, result.createdEvents, context),
+    };
+  } catch (err) { throw err }
 }
 
-function createEvent({ eventInput }) {
+async function createEvent({ eventInput }, context) {
   const event = new Event({
     title: eventInput.title,
     description: eventInput.description,
     price: +eventInput.price,
     date: new Date(eventInput.date),
-    creator: '5d3f8ff4961a1d0a7a55fdb6',
+    creator: '5d4012ad3ab8641a5eb1782b',
   });
   let createdEvent;
 
-
   // to fix: save event after updating user
-  return event
-    .save()
-    .then(result => {
-      createdEvent = { ...result._doc };
-      return User
-        .findById('5d3f8ff4961a1d0a7a55fdb6');
-    })
-    .then(user => {
-      if (!user) { throw new Error('User not found') }
-      user.createdEvents.push(event);
-      return user.save();
-    })
-    .then(result => {
-      return createdEvent
-    })
-    .catch(err => { throw err });
+  try {
+    const result = await event.save();
+    createdEvent = {
+      ...result._doc,
+      date: new Date(result.date).toISOString(),
+      creator: context.creator.bind(this, result.creator, context),
+    };
+
+    const user = await User.findById('5d4012ad3ab8641a5eb1782b');
+    if (!user) { throw new Error('User not found') }
+
+    user.createdEvents.push(event);
+    await user.save();
+
+    return createdEvent;
+  } catch (err) { throw err }
 }
 
 module.exports = {

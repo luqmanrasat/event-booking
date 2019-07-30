@@ -10,12 +10,19 @@ const resolvers = {
   ...Query,
   ...Mutation,
 };
+const User = require('./resolvers/User');
+const Event = require('./resolvers/Event');
+const context = {
+  ...User,
+  ...Event,
+}
 
 const app = express();
 app.use(bodyParser.json());
 app.use('/graphql', graphqlHttp({
   schema,
   rootValue: resolvers,
+  context,
   graphiql: true,
 }));
 
