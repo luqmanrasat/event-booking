@@ -14,6 +14,7 @@ const schema = buildSchema(`
     _id: ID!
     email: String!
     password: String
+    createdEvents: [Event!]
   }
 
   type Event {
@@ -22,6 +23,7 @@ const schema = buildSchema(`
     description: String!
     price: Float!
     date: String!
+    creator: User!
   }
 
   input UserInput {

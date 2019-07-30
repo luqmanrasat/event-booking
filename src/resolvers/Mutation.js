@@ -34,6 +34,8 @@ function createEvent({ eventInput }) {
   });
   let createdEvent;
 
+
+  // to fix: save event after updating user
   return event
     .save()
     .then(result => {
