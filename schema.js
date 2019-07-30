@@ -6,7 +6,14 @@ const schema = buildSchema(`
   }
 
   type Mutation {
+    createUser(userInput: UserInput!): User
     createEvent(eventInput: EventInput): Event
+  }
+
+  type User {
+    _id: ID!
+    email: String!
+    password: String
   }
 
   type Event {
@@ -15,6 +22,11 @@ const schema = buildSchema(`
     description: String!
     price: Float!
     date: String!
+  }
+
+  input UserInput {
+    email: String!
+    password: String!
   }
 
   input EventInput {
